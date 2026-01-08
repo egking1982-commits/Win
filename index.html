@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ملتقى الحياة - تسجيل مفتوح</title>
+    <title>ملتقى الحياة - المباشر</title>
     <style>
         :root { --main: #d63384; --dark: #2c3e50; --sent: #dcf8c6; --bg: #e5ddd5; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; overflow: hidden; }
-        
         .auth-container { background: white; width: 85%; max-width: 350px; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        
         .btn-main { width: 100%; padding: 12px; background: var(--main); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-secondary { background: none; color: var(--main); border: none; margin-top: 15px; cursor: pointer; text-decoration: underline; font-size: 14px; }
-
         #chat-app { display: none; height: 100%; width: 100%; flex-direction: column; background: white; }
         .mobile-header { background: var(--main); color: white; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; font-weight: bold; }
         .messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: var(--bg); }
@@ -23,7 +20,6 @@
         .bubble { padding: 10px 14px; border-radius: 18px; background: white; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
         .sent .bubble { background: var(--sent); border-top-right-radius: 4px; }
         .received .bubble { border-top-left-radius: 4px; }
-        
         .input-area { background: white; padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd; }
         .msg-input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
     </style>
@@ -34,10 +30,8 @@
         <h2 id="auth-title" style="color:var(--main)">💞 تسجيل الدخول</h2>
         <input type="text" id="user-id" placeholder="اسم المستخدم">
         <input type="password" id="user-pass" placeholder="كلمة المرور">
-        
         <button id="loginBtn" class="btn-main">دخول</button>
         <button id="registerBtn" class="btn-main" style="display:none; background:#28a745;">إنشاء الحساب الآن</button>
-        
         <button id="toggleAuth" class="btn-secondary">ليس لديك حساب؟ إنشاء حساب جديد</button>
     </div>
 
@@ -57,13 +51,15 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // إعدادات مشروعك المستخرجة من الصور المرفقة
         const firebaseConfig = {
-            apiKey: "AIzaSyClnZptClETDJK5VRGxY0jZXfTva4eTxBo",
-            authDomain: "firechat-a2f3e.firebaseapp.com",
-            projectId: "firechat-a2f3e",
-            storageBucket: "firechat-a2f3e.firebasestorage.app",
-            messagingSenderId: "460636544730",
-            appId: "1:460636544730:web:29784ea654efac6b740fe3"
+            apiKey: "AIzaSyAQoBgXB_Iq0Ga_UmJkwifQ7kqbHF1FGPY",
+            authDomain: "chat-8fc29.firebaseapp.com",
+            projectId: "chat-8fc29", //
+            storageBucket: "chat-8fc29.firebasestorage.app",
+            messagingSenderId: "86774347462", //
+            appId: "1:86774347462:web:486b16cea75191187009c7", //
+            measurementId: "G-VPWST3GC3Y"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -75,7 +71,6 @@
         const registerBtn = document.getElementById('registerBtn');
         const toggleBtn = document.getElementById('toggleAuth');
 
-        // التبديل بين الدخول وإنشاء الحساب
         toggleBtn.onclick = () => {
             if (loginBtn.style.display !== 'none') {
                 authTitle.innerText = "💞 حساب جديد";
@@ -90,64 +85,50 @@
             }
         };
 
-        // وظيفة إنشاء حساب جديد (متاحة للجميع)
         registerBtn.onclick = async () => {
             const u = document.getElementById('user-id').value.trim();
             const p = document.getElementById('user-pass').value.trim();
             if (!u || !p) return alert("اكمل البيانات");
-
             const check = await get(child(ref(db), `users/${u}`));
-            if (check.exists()) return alert("اسم المستخدم موجود مسبقاً!");
-
+            if (check.exists()) return alert("الاسم موجود مسبقاً!");
             await set(ref(db, 'users/' + u), { pass: p });
-            alert("تم إنشاء حسابك بنجاح! يمكنك الدخول الآن.");
-            toggleBtn.click(); // العودة لشاشة الدخول
+            alert("تم إنشاء حسابك! سجل دخولك الآن.");
+            toggleBtn.click();
         };
 
-        // تسجيل الدخول
         loginBtn.onclick = async () => {
             const u = document.getElementById('user-id').value.trim();
             const p = document.getElementById('user-pass').value.trim();
-
             const snapshot = await get(child(ref(db), `users/${u}`));
             if (snapshot.exists() && snapshot.val().pass === p) {
                 startChat(u);
-            } else {
-                alert("بيانات خاطئة");
-            }
+            } else { alert("بيانات خاطئة"); }
         };
 
         function startChat(user) {
             currentUser = user;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('chat-app').style.display = 'flex';
-            
             onChildAdded(ref(db, 'messages'), (snap) => {
                 const data = snap.val();
                 const box = document.getElementById('chatBox');
                 const isMe = data.sender === currentUser;
                 const wrap = document.createElement('div');
                 wrap.className = `msg-wrapper ${isMe ? 'sent' : 'received'}`;
-                wrap.innerHTML = `
-                    <div style="font-size:10px; color:#888;">${data.sender}</div>
-                    <div class="bubble">${data.text}</div>
-                `;
+                wrap.innerHTML = `<div style="font-size:10px; color:#888;">${data.sender}</div><div class="bubble">${data.text}</div>`;
                 box.appendChild(wrap);
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        // إرسال الرسائل
         document.getElementById('sendBtn').onclick = () => {
             const t = document.getElementById('tInp');
             if(t.value.trim()){
-                push(ref(db, 'messages'), {
-                    sender: currentUser,
-                    text: t.value
-                });
+                push(ref(db, 'messages'), { sender: currentUser, text: t.value });
                 t.value = "";
             }
         };
     </script>
 </body>
 </html>
+
